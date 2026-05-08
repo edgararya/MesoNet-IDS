@@ -1,66 +1,80 @@
 # MesoNet IDS: Deepfake Intrusion Detection System 🛡️
 
-A real-time Deepfake Intrusion Detection System (IDS) designed for Blue Team operations. This project extends the original MesoNet architecture with a live scanning dashboard, target tracking, and real-time AI analysis of video feeds or screen regions.
+A real-time Deepfake Intrusion Detection System (IDS) designed for **Blue Team operations**. This project extends the original MesoNet architecture into a live scanning dashboard with target tracking and real-time AI analysis of video feeds or screen regions.
 
-## 🚀 Key Features
+Sangat cocok digunakan untuk presentasi akademik, simulasi Cybersecurity, dan demonstrasi keamanan (*Live Scanning*).
 
-- **Live Screen Scanner**: Select any region on your screen to monitor for deepfake content in real-time.
-- **IDS Dashboard**: A professional monitoring interface built with Tkinter, featuring status indicators and system logs.
-- **Target Lock System**: Integrated snipping tool to "lock" onto specific video windows or web streams.
-- **MesoNet AI Engine**: Powered by Meso4 and MesoInception-4 architectures for mesoscopic image analysis.
-- **Hybrid Analysis**: Combines deep learning with **ELA (Error Level Analysis)** to detect compression inconsistencies.
-- **Automated Face Tracking**: Real-time face detection using Haar Cascades and MediaPipe (available in variations).
+## 🚀 Fitur Utama
 
-## 🛠️ Requirements
+- **Live Screen Scanner**: Kunci (lock) area mana saja di layar komputer Anda (contoh: video Zoom, YouTube, atau MP4 player) untuk dipantau secara *real-time*.
+- **IDS Dashboard**: Interface pemantauan bergaya radar/Blue Team yang dilengkapi log sistem otomatis dan indikator intrusi.
+- **Target Lock System**: Terintegrasi dengan fitur "Snipping Tool" mandiri untuk menangkap area layar secara dinamis tanpa bug rekursif (layar masuk ke dalam layar).
+- **MesoNet AI Engine**: Ditenagai arsitektur Meso4 untuk mendeteksi artefak mesoscopic pada gambar wajah.
+- **Hybrid ELA Analysis**: Mengkombinasikan Deep Learning dengan perhitungan **Error Level Analysis (ELA)**.
+- **Automated Face Tracking**: Menggunakan Haar Cascades dengan *CLAHE Equalization* agar tetap bisa mendeteksi wajah meski video redup.
 
-- **Python**: 3.7+
-- **Core Libraries**:
-  - `tensorflow` or `keras` (for MesoNet models)
-  - `opencv-python` (cv2)
-  - `numpy`
-  - `mss` (for high-performance screen capture)
-  - `Pillow` (PIL)
-- **Optional (for pipeline/live scanner)**:
-  - `imageio`
-  - `face_recognition`
+## 🛠️ Persyaratan Lingkungan (Environment Setup)
 
-## 📦 Installation
+Sangat disarankan untuk menggunakan **Anaconda** / **Miniconda** untuk menghindari konflik dependensi (*terutama untuk TensorFlow di Windows*).
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/MesoNet-IDS.git
-   cd MesoNet-IDS
-   ```
-2. Install dependencies:
-   ```bash
-   pip install tensorflow opencv-python numpy mss pillow
-   ```
+### 1. Install Anaconda / Miniconda
+Pastikan Anda sudah menginstal [Miniconda](https://docs.conda.io/en/latest/miniconda.html) atau Anaconda.
 
-## 🖥️ Usage
+### 2. Buat Environment Baru
+Buka **Anaconda Prompt**, lalu jalankan perintah berikut secara berurutan:
 
-### Live Scanner Dashboard
-To start the real-time detection dashboard, run:
 ```bash
-python live_scanner.py
-```
-1. Click **"🎯 LOCK TARGET REGION"**.
-2. Select the area on your screen containing the face/video.
-3. The AI will start analyzing the feed and display the **Confidence Score** and **Status (REAL/FAKE)**.
+# Buat environment dengan Python 3.9 (paling stabil untuk TensorFlow versi ini)
+conda create -n ids_modern python=3.9 -y
 
-### Traditional Pipeline
-To run detection on a video file:
-```bash
-python pipeline.py --video path/to/video.mp4
+# Aktifkan environment
+conda activate ids_modern
 ```
+
+### 3. Install Dependensi Inti
+```bash
+# Install library untuk AI dan gambar
+pip install tensorflow opencv-python numpy pillow mss
+```
+*Catatan:* Jika Anda menggunakan Windows dan muncul *warning* TensorFlow GPU tidak tersedia, sistem akan otomatis beralih ke mode CPU (aman digunakan).
+
+## 📦 Menjalankan Program
+
+1. Clone atau unduh repositori ini.
+2. Buka Anaconda Prompt, pindah ke folder proyek, dan pastikan environment aktif:
+   ```bash
+   cd path/ke/folder/MesoNet-master
+   conda activate ids_modern
+   ```
+3. Jalankan Dashboard IDS:
+   ```bash
+   python live_scanner.py
+   ```
+
+## 🎭 Panduan Presentasi / Demo (Skenario Blue Team)
+
+Aplikasi ini didesain agar terlihat profesional saat demonstrasi di depan audiens atau dosen:
+
+1. **Siapkan Barang Bukti:** Buka sebuah video di sebelahnya (bisa video YouTube orang asli, dan tab lain berisi video Deepfake Tom Cruise).
+2. **Jalankan Dashboard:** Buka `live_scanner.py`.
+3. **Mulai Lock:** Klik tombol **"🎯 LOCK TARGET REGION"**.
+4. **Sorot Area:** Layar akan redup seperti *Snipping Tool*. Seleksi/kotaki area wajah yang ada di video. Pastikan mengotaki area wajah saja (jangan terlalu besar/terlalu kecil).
+5. **Analisis Berjalan:** 
+   - Jika video manusia asli: Status akan berwarna Hijau **"✅ REAL HUMAN"**.
+   - Jika diganti ke video Deepfake: AI akan mendeteksi keanehan. Bar Log akan menampilkan warna Merah dan teks **"🚨 DEEPFAKE DETECTED!"**. Log di bagian bawah akan otomatis mencatat status invasi/intrusi (*INTRUSION ALERT*).
+
+### 💡 Tips Resolusi Masalah (Troubleshooting)
+- **Status Stuck di "NO FACE":** Artinya AI gagal mendeteksi wajah di kotak yang Anda pilih. Coba klik "LOCK TARGET" lagi, lalu pilih kotak yang lebih presisi (jangan kepotong dagu atau keningnya).
+- **Video redup/gelap:** Program sudah dilengkapi *auto-contrast (CLAHE)*, namun usahakan video yang dideteksi cukup terang.
 
 ## 🧠 Pretrained Models
-The project includes pretrained weights in the `weights` folder:
-- `Meso4_DF.h5`: Optimized for Deepfake detection.
-- `Meso4_F2F.h5`: Optimized for Face2Face detection.
+Proyek ini membutuhkan *pretrained weights* yang sudah disediakan di folder `weights`:
+- `Meso4_DF.h5`: Optimal untuk mendeteksi *Deepfake*.
+- `Meso4_F2F.h5`: Optimal untuk mendeteksi manipulasi *Face2Face*.
 
-## 📜 References & Acknowledgments
-This project is an extension of the original MesoNet research:
+## 📜 Referensi & Pengakuan
+Proyek ini adalah ekstensi (GUI & Live Capabilities) dari riset awal MesoNet:
 - **Darius Afchar, Vincent Nozick, Junichi Yamagishi, Isao Echizen.** "MesoNet: a Compact Facial Video Forgery Detection Network". WIFS 2018.
 
 ---
-*Developed for academic research and Blue Team cybersecurity simulations.*
+*Dikembangkan untuk riset akademik dan simulasi Cybersecurity Blue Team.*

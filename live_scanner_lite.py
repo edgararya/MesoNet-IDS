@@ -15,25 +15,15 @@ import threading
 import time
 from collections import deque
 import datetime
-from classifiers import Meso4, MesoInception4
+from classifiers import Meso4
 import os
 
 # Matikan log TensorFlow yang terlalu berisik
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 print("Memuat AI MesoNet... Mohon tunggu.")
-
-# === TRIPLE MODEL ENSEMBLE (lebih akurat) ===
-clf_meso_df       = Meso4()
-clf_meso_df.load('weights/Meso4_DF.h5')
-
-clf_meso_f2f      = Meso4()
-clf_meso_f2f.load('weights/Meso4_F2F.h5')
-
-clf_inception_df  = MesoInception4()
-clf_inception_df.load('weights/MesoInception_DF.h5')
-
-print("[OK] 3 Model dimuat: Meso4_DF + Meso4_F2F + MesoInception4_DF")
+classifier = Meso4()
+classifier.load('weights/Meso4_DF.h5')
 
 score_history = deque(maxlen=5)  # 5 frame = respons lebih cepat
 
@@ -262,51 +252,38 @@ class LiveScannerApp:
             decimg = cv2.imdecode(encimg, 1)
             ela_score = float(np.mean(cv2.absdiff(face_std, decimg)))
             
-            # === TRIPLE MODEL ENSEMBLE PREDICTION ===
+            # MesoNet AI Prediction
             img_ai = face_std.astype(np.float32) / 255.0
             img_ai = np.expand_dims(img_ai, axis=0)
             
-            r1 = clf_meso_df.predict(img_ai)
-            r2 = clf_meso_f2f.predict(img_ai)
-            r3 = clf_inception_df.predict(img_ai)
-            
-            if any(r is None or len(r) == 0 for r in [r1, r2, r3]):
+            result = classifier.predict(img_ai)
+            if result is None or len(result) == 0:
                 status_text = "AI Error — model tidak merespons"
                 status_color = "#e74c3c"
                 self.root.after(0, self.update_gui, frame, status_text, status_color, score_text, log_msg)
                 time.sleep(0.08)
                 return
             
-            # Nilai real-score tiap model (0=fake, 1=real)
-            s1 = float(r1[0][0])  # Meso4_DF
-            s2 = float(r2[0][0])  # Meso4_F2F
-            s3 = float(r3[0][0])  # MesoInception_DF (bobot lebih tinggi)
-            
-            # Weighted average: MesoInception diberi bobot 2x
-            weighted_real = (s1 * 1.0 + s2 * 1.0 + s3 * 2.0) / 4.0
-            raw_score = weighted_real
+            raw_score = float(result[0][0])  # Nilai mentah per frame (0=fake, 1=real)
             score_history.append(raw_score)
             avg_score = sum(score_history) / len(score_history)
             
+            # avg_score mendekati 0 = FAKE, mendekati 1 = REAL
             fake_prob = (1.0 - avg_score) * 100
+            raw_fake  = (1.0 - raw_score) * 100   # untuk ditampilkan tanpa smoothing
             
-            # Fake prob tiap model untuk debug
-            fp1 = (1.0 - s1) * 100
-            fp2 = (1.0 - s2) * 100
-            fp3 = (1.0 - s3) * 100
-            
-            if fake_prob > 45:
+            if fake_prob > 45:  # Threshold 45% lebih sensitif
                 status_text = "🚨 DEEPFAKE DETECTED!"
                 status_color = "#e74c3c"
-                box_color = (0, 0, 255)
+                box_color = (0, 0, 255)   # Merah BGR
                 if fake_prob > 65:
-                    log_msg = f"[INTRUSION ALERT] Deepfake! Score: {fake_prob:.1f}% (DF:{fp1:.0f}% F2F:{fp2:.0f}% INC:{fp3:.0f}%)"
+                    log_msg = f"[INTRUSION ALERT] Deepfake terdeteksi! Prob: {fake_prob:.1f}%"
             else:
                 status_text = "✅ REAL HUMAN"
                 status_color = "#2ecc71"
-                box_color = (0, 255, 0)
+                box_color = (0, 255, 0)   # Hijau BGR
             
-            score_text = f"Deepfake Score: {fake_prob:.0f}%  [DF:{fp1:.0f}% | F2F:{fp2:.0f}% | INC:{fp3:.0f}%]"
+            score_text = f"Deepfake Score: {fake_prob:.0f}%"
             
             # Gambar bounding box
             cv2.rectangle(frame, (left, top), (right, bottom), box_color, 2)
