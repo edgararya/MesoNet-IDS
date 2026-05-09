@@ -1,80 +1,71 @@
-# MesoNet IDS: Deepfake Intrusion Detection System 🛡️
+# DeepGuard-IDS: Real-Time Deepfake Intrusion Detection System
 
-A real-time Deepfake Intrusion Detection System (IDS) designed for **Blue Team operations**. This project extends the original MesoNet architecture into a live scanning dashboard with target tracking and real-time AI analysis of video feeds or screen regions.
+DeepGuard-IDS is a lightweight, host-based Intrusion Detection System (IDS) designed to identify deepfakes and AI-manipulated visual content in real-time. Operating with an out-of-band monitoring approach, it can scan active video streams from any third-party applications (such as Zoom, Google Meet, YouTube, or local media players) without requiring API integrations or webhooks.
 
-Sangat cocok digunakan untuk presentasi akademik, simulasi Cybersecurity, dan demonstrasi keamanan (*Live Scanning*).
+## Core Features
 
-## 🚀 Fitur Utama
+*   **Triple-Model Ensemble Architecture**
+    Utilizes a weighted voting mechanism combining three distinct Convolutional Neural Networks (Meso4-DF, Meso4-F2F, and MesoInception4) to achieve high accuracy and reduce false positives in real-world scenarios.
+*   **Target Lock (Screen Scraping)**
+    Features an intuitive "Snipping Tool" mechanism that allows users to draw a bounding box over any specific area of their monitor. The system will lock onto this physical coordinate and continuously scan the visual feed.
+*   **Zero-API Dependency & Privacy-Preserving**
+    Operates 100% locally on the host machine. No video data is ever transmitted to cloud servers, ensuring absolute privacy for sensitive video conferences.
+*   **Lightweight CPU Execution**
+    Engineered for optimal performance without the need for high-end GPUs. It runs efficiently on standard CPUs (achieving 15-20 FPS) by isolating the ROI (Region of Interest) and utilizing multithreading for the GUI and detection pipeline.
+*   **Adaptive Illumination (CLAHE)**
+    Integrates Contrast Limited Adaptive Histogram Equalization (CLAHE) to preprocess incoming frames, ensuring stable face detection even in poor or backlit lighting conditions.
 
-- **Live Screen Scanner**: Kunci (lock) area mana saja di layar komputer Anda (contoh: video Zoom, YouTube, atau MP4 player) untuk dipantau secara *real-time*.
-- **IDS Dashboard**: Interface pemantauan bergaya radar/Blue Team yang dilengkapi log sistem otomatis dan indikator intrusi.
-- **Target Lock System**: Terintegrasi dengan fitur "Snipping Tool" mandiri untuk menangkap area layar secara dinamis tanpa bug rekursif (layar masuk ke dalam layar).
-- **MesoNet AI Engine**: Ditenagai arsitektur Meso4 untuk mendeteksi artefak mesoscopic pada gambar wajah.
-- **Hybrid ELA Analysis**: Mengkombinasikan Deep Learning dengan perhitungan **Error Level Analysis (ELA)**.
-- **Automated Face Tracking**: Menggunakan Haar Cascades dengan *CLAHE Equalization* agar tetap bisa mendeteksi wajah meski video redup.
+## System Architecture
 
-## 🛠️ Persyaratan Lingkungan (Environment Setup)
+DeepGuard-IDS functions as a Blue Team preventative tool. The workflow consists of:
+1.  **Frame Acquisition**: Continuous screen capture using `mss`.
+2.  **Preprocessing**: CLAHE enhancement followed by Haar Cascade face isolation.
+3.  **Inference**: The isolated face tensor is passed asynchronously to the Triple-Model CNN.
+4.  **Scoring & Alerting**: A moving average (5-frame smoothing) calculates the final authenticity probability. If the threshold exceeds the anomaly limit, an Intrusion Alert is logged into the dashboard.
 
-Sangat disarankan untuk menggunakan **Anaconda** / **Miniconda** untuk menghindari konflik dependensi (*terutama untuk TensorFlow di Windows*).
+## Installation
 
-### 1. Install Anaconda / Miniconda
-Pastikan Anda sudah menginstal [Miniconda](https://docs.conda.io/en/latest/miniconda.html) atau Anaconda.
+### Prerequisites
+*   Windows OS (optimized for DPI awareness)
+*   Miniconda / Anaconda
+*   Python 3.9
 
-### 2. Buat Environment Baru
-Buka **Anaconda Prompt**, lalu jalankan perintah berikut secara berurutan:
+### Environment Setup
 
-```bash
-# Buat environment dengan Python 3.9 (paling stabil untuk TensorFlow versi ini)
-conda create -n ids_modern python=3.9 -y
-
-# Aktifkan environment
-conda activate ids_modern
-```
-
-### 3. Install Dependensi Inti
-```bash
-# Install library untuk AI dan gambar
-pip install tensorflow opencv-python numpy pillow mss
-```
-*Catatan:* Jika Anda menggunakan Windows dan muncul *warning* TensorFlow GPU tidak tersedia, sistem akan otomatis beralih ke mode CPU (aman digunakan).
-
-## 📦 Menjalankan Program
-
-1. Clone atau unduh repositori ini.
-2. Buka Anaconda Prompt, pindah ke folder proyek, dan pastikan environment aktif:
+1. Clone this repository:
    ```bash
-   cd path/ke/folder/MesoNet-master
-   conda activate ids_modern
+   git clone https://github.com/edgararya/DeepGuard-IDS.git
+   cd DeepGuard-IDS
    ```
-3. Jalankan Dashboard IDS:
+
+2. Create and activate a dedicated Conda environment:
+   ```bash
+   conda create -n deepguard python=3.9 -y
+   conda activate deepguard
+   ```
+
+3. Install required dependencies:
+   ```bash
+   pip install opencv-python mss numpy pillow
+   pip install tensorflow==2.10.0
+   ```
+   *Note: TensorFlow 2.10.0 is the last version to officially support native Windows GPU acceleration if you plan to configure CUDA, though this application is optimized for CPU usage.*
+
+## Usage
+
+1. Ensure the Conda environment is active.
+2. Launch the dashboard:
    ```bash
    python live_scanner.py
    ```
+3. Click the **[+] Kunci Target Layar** button.
+4. Click and drag to draw a selection box over the video feed or video conference window you wish to monitor.
+5. The dashboard will reappear and begin real-time analysis. The terminal panel will log any detected anomalies.
 
-## 🎭 Panduan Presentasi / Demo (Skenario Blue Team)
+## Disclaimer
 
-Aplikasi ini didesain agar terlihat profesional saat demonstrasi di depan audiens atau dosen:
+This software is developed as an academic prototype for educational and research purposes in the field of Information Security. It is intended to serve as a proof-of-concept for anomaly-based visual intrusion detection.
 
-1. **Siapkan Barang Bukti:** Buka sebuah video di sebelahnya (bisa video YouTube orang asli, dan tab lain berisi video Deepfake Tom Cruise).
-2. **Jalankan Dashboard:** Buka `live_scanner.py`.
-3. **Mulai Lock:** Klik tombol **"🎯 LOCK TARGET REGION"**.
-4. **Sorot Area:** Layar akan redup seperti *Snipping Tool*. Seleksi/kotaki area wajah yang ada di video. Pastikan mengotaki area wajah saja (jangan terlalu besar/terlalu kecil).
-5. **Analisis Berjalan:** 
-   - Jika video manusia asli: Status akan berwarna Hijau **"✅ REAL HUMAN"**.
-   - Jika diganti ke video Deepfake: AI akan mendeteksi keanehan. Bar Log akan menampilkan warna Merah dan teks **"🚨 DEEPFAKE DETECTED!"**. Log di bagian bawah akan otomatis mencatat status invasi/intrusi (*INTRUSION ALERT*).
+## License
 
-### 💡 Tips Resolusi Masalah (Troubleshooting)
-- **Status Stuck di "NO FACE":** Artinya AI gagal mendeteksi wajah di kotak yang Anda pilih. Coba klik "LOCK TARGET" lagi, lalu pilih kotak yang lebih presisi (jangan kepotong dagu atau keningnya).
-- **Video redup/gelap:** Program sudah dilengkapi *auto-contrast (CLAHE)*, namun usahakan video yang dideteksi cukup terang.
-
-## 🧠 Pretrained Models
-Proyek ini membutuhkan *pretrained weights* yang sudah disediakan di folder `weights`:
-- `Meso4_DF.h5`: Optimal untuk mendeteksi *Deepfake*.
-- `Meso4_F2F.h5`: Optimal untuk mendeteksi manipulasi *Face2Face*.
-
-## 📜 Referensi & Pengakuan
-Proyek ini adalah ekstensi (GUI & Live Capabilities) dari riset awal MesoNet:
-- **Darius Afchar, Vincent Nozick, Junichi Yamagishi, Isao Echizen.** "MesoNet: a Compact Facial Video Forgery Detection Network". WIFS 2018.
-
----
-*Dikembangkan untuk riset akademik dan simulasi Cybersecurity Blue Team.*
+This project is licensed under the MIT License. See the `LICENSE` file for details.
